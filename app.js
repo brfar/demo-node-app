@@ -15,6 +15,12 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
 /**
+ * Built-in middleware so we can serve static files. 
+ * Now we can load files that are in the `public` directory.
+ */
+app.use(express.static('public'));
+
+/**
  * To retrieve whatever data the user has submitted via the form, we’ll need body-parser, 
  * which will make the form data available on the request body.
  * There are various ways to format the data you POST to the server, using body-parser's `urlencoded` method 

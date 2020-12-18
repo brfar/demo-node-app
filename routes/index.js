@@ -1,10 +1,15 @@
+const auth = require('http-auth');
 const express = require('express');
 const mongoose = require('mongoose');
+const path = require('path');
 // vvv Middleware that provides useful methods for the sanitization and validation of user input.
 const { check, validationResult } = require('express-validator');
 
 const router = express.Router();
 const Registration = mongoose.model('Registration');
+const basic = auth.basic({
+	file: path.join(__dirname, '../users.htpasswd'),
+});
 
 /**
  * Telling our route to use our new template.
@@ -50,8 +55,27 @@ router.post('/', validation, (req, res) => {
 			data: req.body,
 		});
 	}
-
-	res.render('form', { title: 'Registration form' });
 });
+/**
+ * We’re using the `find` method, which will return all of the records in the collection.
+ * Because the database lookup is asynchronous, we’re waiting for it to complete before rendering the view.
+ * If any records were returned, these will be passed to the view template in the registrations property.
+ * If no records were returned registrations will be an empty array.
+ *
+ * `basic.check` protect this route. When we try to access it, we need to pass a login/password
+ */
+router.get(
+	'/registrations',
+	basic.check((req, res) => {
+		Registration.find()
+			.then(registrations => {
+				res.render('index', { title: 'Listing registrations', registrations });
+			})
+			.catch((err) => {
+				console.log(err);
+				res.send('Sorry! Something went wrong.');
+			});
+	})
+);
 
 module.exports = router;
